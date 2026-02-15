@@ -8,6 +8,7 @@ export const I18N = {
     settings: 'Настройки',
     projects: 'Проекты',
     progressLabel: 'Прогресс шагов проекта',
+    progressShort: 'Прогресс',
     chooseProject: 'Выберите или создайте проект',
     clickCreate: 'Нажмите на иконку папки с плюсом вверху.',
     projectNotes: 'Заметки проекта',
@@ -35,6 +36,7 @@ export const I18N = {
     downloadUpdate: 'Скачать обновление',
     noUpdates: 'У вас установлена актуальная версия',
     updateAvailable: 'Доступна новая версия',
+    updateAvailableNav: 'доступно обновление',
     updateCheckError: 'Не удалось проверить обновления',
     currentVersion: 'Текущая версия',
     latestVersion: 'Последняя версия',
@@ -71,6 +73,7 @@ export const I18N = {
     settings: 'Settings',
     projects: 'Projects',
     progressLabel: 'Project steps progress',
+    progressShort: 'Progress',
     chooseProject: 'Select or create a project',
     clickCreate: 'Click the folder-plus icon at the top.',
     projectNotes: 'Project notes',
@@ -98,6 +101,7 @@ export const I18N = {
     downloadUpdate: 'Download update',
     noUpdates: 'You are using the latest version',
     updateAvailable: 'A new version is available',
+    updateAvailableNav: 'update available',
     updateCheckError: 'Failed to check updates',
     currentVersion: 'Current version',
     latestVersion: 'Latest version',
@@ -134,6 +138,7 @@ export const I18N = {
     settings: 'Налаштування',
     projects: 'Проєкти',
     progressLabel: 'Прогрес кроків проєкту',
+    progressShort: 'Прогрес',
     chooseProject: 'Оберіть або створіть проєкт',
     clickCreate: 'Натисніть іконку папки з плюсом угорі.',
     projectNotes: 'Нотатки проєкту',
@@ -161,6 +166,7 @@ export const I18N = {
     downloadUpdate: 'Завантажити оновлення',
     noUpdates: 'У вас встановлена актуальна версія',
     updateAvailable: 'Доступна нова версія',
+    updateAvailableNav: 'доступне оновлення',
     updateCheckError: 'Не вдалося перевірити оновлення',
     currentVersion: 'Поточна версія',
     latestVersion: 'Остання версія',
@@ -189,5 +195,6 @@ export const I18N = {
     langUk: 'Українська',
   },
 }
+
 
 

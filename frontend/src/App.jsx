@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import {
   AlertCircle,
@@ -71,6 +71,7 @@ function App() {
     downloadUrl: '',
   })
   const [toasts, setToasts] = useState([])
+  const [didAutoUpdateCheck, setDidAutoUpdateCheck] = useState(false)
 
   const t = useMemo(() => {
     const table = I18N[settings.language] || I18N.ru
@@ -132,6 +133,13 @@ function App() {
       })
     }
   }, [projects, settings, loaded])
+
+  useEffect(() => {
+    if (loaded && !didAutoUpdateCheck) {
+      setDidAutoUpdateCheck(true)
+      checkForUpdates({ silent: true })
+    }
+  }, [loaded, didAutoUpdateCheck, checkForUpdates])
 
   useEffect(() => {
     if (!projects.length) {
@@ -199,8 +207,11 @@ function App() {
     }, 2600)
   }
 
-  async function checkForUpdates() {
-    pushToast(t('updateCheckStarted'), 'info')
+  const checkForUpdates = useCallback(async (options = {}) => {
+    const silent = !!options.silent
+    if (!silent) {
+      pushToast(t('updateCheckStarted'), 'info')
+    }
     setUpdateInfo((prev) => ({
       ...prev,
       loading: true,
@@ -236,10 +247,12 @@ function App() {
         releaseUrl: release.html_url || '',
         downloadUrl,
       })
-      if (hasUpdate) {
-        pushToast(`${t('updateAvailable')}: ${latestVersion}`, 'success')
-      } else {
-        pushToast(t('noUpdates'), 'success')
+      if (!silent) {
+        if (hasUpdate) {
+          pushToast(`${t('updateAvailable')}: ${latestVersion}`, 'success')
+        } else {
+          pushToast(t('noUpdates'), 'success')
+        }
       }
     } catch {
       setUpdateInfo((prev) => ({
@@ -247,9 +260,11 @@ function App() {
         loading: false,
         error: t('updateCheckError'),
       }))
-      pushToast(t('updateCheckError'), 'error')
+      if (!silent) {
+        pushToast(t('updateCheckError'), 'error')
+      }
     }
-  }
+  }, [APP_VERSION, t])
 
   async function openUpdateDownload() {
     const target = updateInfo.downloadUrl || updateInfo.releaseUrl
@@ -472,12 +487,13 @@ function App() {
           </h1>
         </div>
 
-        <div className="toolbar">
+        <div className={`toolbar ${!selectedProject ? 'toolbar-right' : ''}`}>
           <IconButton title={t('createProject')} icon={<FolderPlus size={18} />} onClick={openCreateProjectModal} />
           <IconButton title={t('editProject')} icon={<FolderCog size={18} />} onClick={openEditProjectModal} disabled={!selectedProject} />
           <IconButton title={t('deleteProject')} icon={<Trash2 size={18} />} onClick={removeSelectedProject} danger disabled={!selectedProject} />
           <IconButton title={t('createNote')} icon={<FilePlus2 size={18} />} onClick={openCreateNoteModal} disabled={!selectedProject} />
           <IconButton title={t('settings')} icon={<Settings size={18} />} onClick={openSettingsPage} />
+          {updateInfo.hasUpdate ? <span className="update-nav-flag">({t('updateAvailableNav')})</span> : null}
           <IconButton title={t('projects')} icon={<LayoutGrid size={18} />} onClick={() => setActivePage('projects')} />
         </div>
 
@@ -486,7 +502,7 @@ function App() {
             <div className="progress-top">
               <span>
                 <ListTodo size={14} />
-                <span>{t('progressLabel')}</span>
+                <span>{t('progressShort')} ({selectedProject.name})</span>
               </span>
               <strong>
                 {progress.done}/{progress.total}
@@ -496,9 +512,7 @@ function App() {
               <div className="progress-fill" style={{ width: `${progress.value * 100}%` }} />
             </div>
           </div>
-        ) : (
-          <div />
-        )}
+        ) : null}
       </header>
 
       <div className="toast-stack" aria-live="polite" aria-atomic="true">
@@ -518,10 +532,6 @@ function App() {
             <Settings size={20} />
             <span>{t('settingsTitle')}</span>
           </h2>
-          <div className="settings-version-inline">
-            {t('version')}: {APP_VERSION}
-          </div>
-
           <section className="setting-card">
             <h3>
               <MoonStar size={17} />
@@ -612,6 +622,10 @@ function App() {
             </div>
           </section>
 
+          <div className="settings-version-inline">
+            {t('version')}: {APP_VERSION}
+          </div>
+
           <div className="settings-save-row">
             <button className="wide-btn" onClick={saveAllSettings}>
               <Save size={16} />
@@ -629,7 +643,7 @@ function App() {
             <div className="project-list">
               {projects.map((project, index) => (
                 <button key={project.id} className={`project-item ${selectedProjectId === project.id ? 'selected' : ''}`} onClick={() => setSelectedProjectId(project.id)} style={{ animationDelay: `${index * 40}ms` }}>
-                  <span className="project-name">{project.name}</span>
+                  <span className="project-name wrap-anywhere">{project.name}</span>
                   <span className="project-count">
                     <NotebookText size={12} />
                     <span>{project.notes.length} {t('noteCount')}</span>
@@ -650,9 +664,9 @@ function App() {
                 <div className="notes-head">
                   <h2>
                     <FolderOpen size={20} />
-                    <span>{selectedProject.name}</span>
+                    <span className="wrap-anywhere">{selectedProject.name}</span>
                   </h2>
-                  {selectedProject.description ? <p>{selectedProject.description}</p> : null}
+                  {selectedProject.description ? <p className="project-description wrap-anywhere">{selectedProject.description}</p> : null}
                 </div>
 
                 <h3 className="section-title">
@@ -669,7 +683,7 @@ function App() {
                         <div className="note-header">
                           <h3>
                             <FilePenLine size={15} />
-                            <span>{note.title}</span>
+                            <span className="wrap-anywhere">{note.title}</span>
                           </h3>
                           <div className="note-actions">
                             <IconButton title={t('editNote')} icon={<Pencil size={16} />} onClick={() => openEditNoteModal(note)} />
@@ -677,7 +691,7 @@ function App() {
                           </div>
                         </div>
 
-                        {note.body ? <p className="note-body">{note.body}</p> : null}
+                        {note.body ? <p className="note-body wrap-anywhere">{note.body}</p> : null}
                       </article>
                     ))}
                   </div>

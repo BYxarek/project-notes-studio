@@ -170,6 +170,19 @@ body {
   gap: 8px;
 }
 
+.toolbar-right {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.update-nav-flag {
+  align-self: center;
+  color: #7bc7ff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
 .icon-btn {
   width: 40px;
   height: 40px;
@@ -202,12 +215,19 @@ body {
 .progress-wrap {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .progress-top {
   display: flex;
   justify-content: space-between;
   color: var(--muted);
+  gap: 10px;
+}
+
+.progress-top span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .progress-track {
@@ -251,6 +271,7 @@ body {
 }
 
 .project-item {
+  min-width: 0;
   text-align: left;
   border: 1px solid transparent;
   border-radius: 14px;
@@ -286,6 +307,10 @@ body {
 
 .notes-head {
   margin-bottom: 8px;
+}
+
+.notes-head h2 {
+  min-width: 0;
 }
 
 .notes-head p,
@@ -333,6 +358,7 @@ body {
 .note-header h3 {
   margin: 0;
   font-size: 1.04rem;
+  min-width: 0;
 }
 
 .note-actions {
@@ -454,7 +480,6 @@ textarea:focus {
 .settings-version-inline {
   color: var(--muted);
   font-weight: 700;
-  margin-top: -6px;
 }
 
 .toast-stack {
@@ -613,6 +638,11 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
+  .toolbar-right {
+    grid-column: auto;
+    justify-self: start;
+  }
+
   .layout {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -622,3 +652,13 @@ textarea:focus {
     grid-template-columns: 24px 1fr 30px 30px 30px;
   }
 }
+
+.wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.project-description {
+  margin: 8px 0 0;
+}
+
