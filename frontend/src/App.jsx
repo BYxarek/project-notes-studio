@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import {
   Check,
+  Download,
+  ExternalLink,
   FilePenLine,
   FilePlus2,
   FolderCog,
@@ -14,6 +16,7 @@ import {
   NotebookText,
   Pencil,
   Plus,
+  RefreshCw,
   Save,
   Settings,
   Square,
@@ -26,6 +29,7 @@ import './App.css'
 
 const STORAGE_KEY = 'proekty-zametki-v3'
 const SETTINGS_KEY = 'proekty-zametki-settings-v1'
+const GITHUB_REPO = 'BYxarek/project-notes-studio'
 const DEFAULT_SETTINGS = {
   theme: 'midnight',
   animations: true,
@@ -66,6 +70,15 @@ const I18N = {
     windowed: 'Оконный',
     borderless: 'Без рамок',
     version: 'Версия приложения',
+    updates: 'Обновления',
+    checkUpdates: 'Проверить обновления',
+    downloadUpdate: 'Скачать обновление',
+    noUpdates: 'У вас установлена актуальная версия',
+    updateAvailable: 'Доступна новая версия',
+    updateCheckError: 'Не удалось проверить обновления',
+    currentVersion: 'Текущая версия',
+    latestVersion: 'Последняя версия',
+    checking: 'Проверка...',
     alwaysOnTopYes: 'Поверх окон: Да',
     alwaysOnTopNo: 'Поверх окон: Нет',
     animationsOn: 'Анимации: Вкл',
@@ -118,6 +131,15 @@ const I18N = {
     windowed: 'Windowed',
     borderless: 'Borderless',
     version: 'Application version',
+    updates: 'Updates',
+    checkUpdates: 'Check updates',
+    downloadUpdate: 'Download update',
+    noUpdates: 'You are using the latest version',
+    updateAvailable: 'A new version is available',
+    updateCheckError: 'Failed to check updates',
+    currentVersion: 'Current version',
+    latestVersion: 'Latest version',
+    checking: 'Checking...',
     alwaysOnTopYes: 'Always on top: Yes',
     alwaysOnTopNo: 'Always on top: No',
     animationsOn: 'Animations: On',
@@ -170,6 +192,15 @@ const I18N = {
     windowed: 'Віконний',
     borderless: 'Без рамок',
     version: 'Версія застосунку',
+    updates: 'Оновлення',
+    checkUpdates: 'Перевірити оновлення',
+    downloadUpdate: 'Завантажити оновлення',
+    noUpdates: 'У вас встановлена актуальна версія',
+    updateAvailable: 'Доступна нова версія',
+    updateCheckError: 'Не вдалося перевірити оновлення',
+    currentVersion: 'Поточна версія',
+    latestVersion: 'Остання версія',
+    checking: 'Перевірка...',
     alwaysOnTopYes: 'Поверх вікон: Так',
     alwaysOnTopNo: 'Поверх вікон: Ні',
     animationsOn: 'Анімації: Увімк',
@@ -285,6 +316,29 @@ function isTauriRuntime() {
   return isTauri()
 }
 
+function normalizeVersionTag(value) {
+  return String(value || '')
+    .trim()
+    .replace(/^v/i, '')
+}
+
+function compareVersions(a, b) {
+  const pa = normalizeVersionTag(a)
+    .split('.')
+    .map((n) => Number.parseInt(n, 10) || 0)
+  const pb = normalizeVersionTag(b)
+    .split('.')
+    .map((n) => Number.parseInt(n, 10) || 0)
+  const len = Math.max(pa.length, pb.length)
+  for (let i = 0; i < len; i += 1) {
+    const va = pa[i] || 0
+    const vb = pb[i] || 0
+    if (va > vb) return 1
+    if (va < vb) return -1
+  }
+  return 0
+}
+
 function Modal({ title, icon, closeText, onClose, children }) {
   useEffect(() => {
     function onKeyDown(event) {
@@ -348,6 +402,14 @@ function App() {
   const [noteCreateForm, setNoteCreateForm] = useState({ title: '', body: '' })
   const [noteEditForm, setNoteEditForm] = useState(null)
   const [newProjectStep, setNewProjectStep] = useState('')
+  const [updateInfo, setUpdateInfo] = useState({
+    loading: false,
+    error: '',
+    hasUpdate: false,
+    latestVersion: '',
+    releaseUrl: '',
+    downloadUrl: '',
+  })
 
   const t = useMemo(() => {
     const table = I18N[settings.language] || I18N.ru
@@ -466,6 +528,57 @@ function App() {
   function openSettingsPage() {
     setSettingsDraft(settings)
     setActivePage('settings')
+  }
+
+  async function checkForUpdates() {
+    setUpdateInfo((prev) => ({
+      ...prev,
+      loading: true,
+      error: '',
+    }))
+
+    try {
+      const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
+        headers: { Accept: 'application/vnd.github+json' },
+      })
+      if (!response.ok) {
+        throw new Error(`GitHub API ${response.status}`)
+      }
+
+      const release = await response.json()
+      const latestVersion = normalizeVersionTag(release.tag_name || release.name || '')
+      const currentVersion = normalizeVersionTag(APP_VERSION)
+      const hasUpdate = compareVersions(latestVersion, currentVersion) > 0
+
+      let downloadUrl = release.html_url || ''
+      if (Array.isArray(release.assets) && release.assets.length > 0) {
+        const preferred = release.assets.find((asset) =>
+          String(asset.name || '').toLowerCase().includes('-setup.exe'),
+        )
+        downloadUrl = (preferred || release.assets[0]).browser_download_url || downloadUrl
+      }
+
+      setUpdateInfo({
+        loading: false,
+        error: '',
+        hasUpdate,
+        latestVersion,
+        releaseUrl: release.html_url || '',
+        downloadUrl,
+      })
+    } catch {
+      setUpdateInfo((prev) => ({
+        ...prev,
+        loading: false,
+        error: t('updateCheckError'),
+      }))
+    }
+  }
+
+  function openUpdateDownload() {
+    const target = updateInfo.downloadUrl || updateInfo.releaseUrl
+    if (!target) return
+    window.open(target, '_blank', 'noopener,noreferrer')
   }
 
   async function saveAllSettings() {
@@ -777,6 +890,37 @@ function App() {
               <span>{t('version')}</span>
             </h3>
             <div className="version-line">{APP_VERSION}</div>
+            <div className="version-line">
+              {t('currentVersion')}: {normalizeVersionTag(APP_VERSION)}
+            </div>
+          </section>
+
+          <section className="setting-card">
+            <h3>
+              <Download size={17} />
+              <span>{t('updates')}</span>
+            </h3>
+            <div className="setting-actions">
+              <button className="wide-btn" onClick={checkForUpdates} disabled={updateInfo.loading}>
+                <RefreshCw size={16} />
+                <span>{updateInfo.loading ? t('checking') : t('checkUpdates')}</span>
+              </button>
+              {updateInfo.hasUpdate ? (
+                <button className="wide-btn" onClick={openUpdateDownload}>
+                  <ExternalLink size={16} />
+                  <span>{t('downloadUpdate')}</span>
+                </button>
+              ) : null}
+            </div>
+            <div className="version-line">
+              {updateInfo.error
+                ? updateInfo.error
+                : updateInfo.latestVersion
+                  ? `${t('latestVersion')}: ${updateInfo.latestVersion} - ${
+                      updateInfo.hasUpdate ? t('updateAvailable') : t('noUpdates')
+                    }`
+                  : ''}
+            </div>
           </section>
 
           <div className="settings-save-row">
