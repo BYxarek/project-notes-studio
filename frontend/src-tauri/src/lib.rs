@@ -58,7 +58,9 @@ fn apply_window_settings(
       window.set_decorations(false).map_err(|err| err.to_string())?;
       window.maximize().map_err(|err| err.to_string())?;
     }
-    _ => {}
+    _ => {
+      return Err(format!("unsupported window mode: {window_mode}"));
+    }
   }
 
   window
