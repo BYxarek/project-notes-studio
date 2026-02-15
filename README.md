@@ -97,8 +97,6 @@ npm run package
 - NSIS-установщик (`.exe`)
 - MSI-пакет (`.msi`)
 
-Страница релизов: https://github.com/BYxarek/project-notes-studio/releases
-
 ## Repository Structure
 ```text
 frontend/                 React + Vite UI + Tauri app
