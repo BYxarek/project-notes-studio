@@ -96,6 +96,12 @@ body {
   animation: none !important;
 }
 
+.app-shell[data-anim='off'] .project-item,
+.app-shell[data-anim='off'] .note-card {
+  opacity: 1;
+  transform: none;
+}
+
 @keyframes floatOne {
   from {
     transform: translate(0, 0) scale(1);
