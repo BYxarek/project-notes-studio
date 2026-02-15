@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import {
+  AlertCircle,
   Check,
+  CheckCircle2,
   Download,
   ExternalLink,
   FilePenLine,
@@ -79,6 +81,8 @@ const I18N = {
     currentVersion: 'Текущая версия',
     latestVersion: 'Последняя версия',
     checking: 'Проверка...',
+    settingsSaved: 'Настройки сохранены',
+    updateCheckStarted: 'Проверяем обновления...',
     alwaysOnTopYes: 'Поверх окон: Да',
     alwaysOnTopNo: 'Поверх окон: Нет',
     animationsOn: 'Анимации: Вкл',
@@ -140,6 +144,8 @@ const I18N = {
     currentVersion: 'Current version',
     latestVersion: 'Latest version',
     checking: 'Checking...',
+    settingsSaved: 'Settings saved',
+    updateCheckStarted: 'Checking for updates...',
     alwaysOnTopYes: 'Always on top: Yes',
     alwaysOnTopNo: 'Always on top: No',
     animationsOn: 'Animations: On',
@@ -201,6 +207,8 @@ const I18N = {
     currentVersion: 'Поточна версія',
     latestVersion: 'Остання версія',
     checking: 'Перевірка...',
+    settingsSaved: 'Налаштування збережені',
+    updateCheckStarted: 'Перевіряємо оновлення...',
     alwaysOnTopYes: 'Поверх вікон: Так',
     alwaysOnTopNo: 'Поверх вікон: Ні',
     animationsOn: 'Анімації: Увімк',
@@ -410,6 +418,7 @@ function App() {
     releaseUrl: '',
     downloadUrl: '',
   })
+  const [toasts, setToasts] = useState([])
 
   const t = useMemo(() => {
     const table = I18N[settings.language] || I18N.ru
@@ -530,7 +539,16 @@ function App() {
     setActivePage('settings')
   }
 
+  function pushToast(message, type = 'info') {
+    const id = createId()
+    setToasts((prev) => [...prev, { id, message, type }])
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id))
+    }, 2600)
+  }
+
   async function checkForUpdates() {
+    pushToast(t('updateCheckStarted'), 'info')
     setUpdateInfo((prev) => ({
       ...prev,
       loading: true,
@@ -566,19 +584,34 @@ function App() {
         releaseUrl: release.html_url || '',
         downloadUrl,
       })
+      if (hasUpdate) {
+        pushToast(`${t('updateAvailable')}: ${latestVersion}`, 'success')
+      } else {
+        pushToast(t('noUpdates'), 'success')
+      }
     } catch {
       setUpdateInfo((prev) => ({
         ...prev,
         loading: false,
         error: t('updateCheckError'),
       }))
+      pushToast(t('updateCheckError'), 'error')
     }
   }
 
-  function openUpdateDownload() {
+  async function openUpdateDownload() {
     const target = updateInfo.downloadUrl || updateInfo.releaseUrl
     if (!target) return
-    window.open(target, '_blank', 'noopener,noreferrer')
+    try {
+      if (isTauriRuntime()) {
+        const { open } = await import('@tauri-apps/plugin-opener')
+        await open(target)
+      } else {
+        window.open(target, '_blank', 'noopener,noreferrer')
+      }
+    } catch {
+      window.open(target, '_blank', 'noopener,noreferrer')
+    }
   }
 
   async function saveAllSettings() {
@@ -595,6 +628,7 @@ function App() {
         // noop
       }
     }
+    pushToast(t('settingsSaved'), 'success')
   }
 
   function saveNewProject() {
@@ -815,12 +849,26 @@ function App() {
         )}
       </header>
 
+      <div className="toast-stack" aria-live="polite" aria-atomic="true">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast toast-${toast.type}`}>
+            {toast.type === 'success' ? <CheckCircle2 size={15} /> : null}
+            {toast.type === 'error' ? <AlertCircle size={15} /> : null}
+            {toast.type === 'info' ? <RefreshCw size={15} /> : null}
+            <span>{toast.message}</span>
+          </div>
+        ))}
+      </div>
+
       {activePage === 'settings' ? (
         <main className="panel settings-page">
           <h2>
             <Settings size={20} />
             <span>{t('settingsTitle')}</span>
           </h2>
+          <div className="settings-version-inline">
+            {t('version')}: {APP_VERSION}
+          </div>
 
           <section className="setting-card">
             <h3>
@@ -881,17 +929,6 @@ function App() {
               <button className={`mode-btn ${settingsDraft.language === 'ru' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, language: 'ru' }))}>{t('langRu')}</button>
               <button className={`mode-btn ${settingsDraft.language === 'en' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, language: 'en' }))}>{t('langEn')}</button>
               <button className={`mode-btn ${settingsDraft.language === 'uk' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, language: 'uk' }))}>{t('langUk')}</button>
-            </div>
-          </section>
-
-          <section className="setting-card">
-            <h3>
-              <NotebookText size={17} />
-              <span>{t('version')}</span>
-            </h3>
-            <div className="version-line">{APP_VERSION}</div>
-            <div className="version-line">
-              {t('currentVersion')}: {normalizeVersionTag(APP_VERSION)}
             </div>
           </section>
 
