@@ -42,6 +42,8 @@ export function normalizeProjects(source) {
       id: project.id || createId(),
       name: project.name || 'Project',
       description: project.description || '',
+      status: typeof project.status === 'string' ? project.status.trim() : '',
+      pinned: !!project.pinned,
       notes,
       steps,
     }
@@ -51,6 +53,11 @@ export function normalizeProjects(source) {
 export function normalizeSettings(source) {
   const windowMode = source?.windowMode
   const controlsLayout = source?.controlsLayout === 'contextual' ? 'contextual' : 'topbar'
+  const statusesEnabled = source?.statusesEnabled !== false
+  const hasCustomStatuses = Array.isArray(source?.projectStatuses)
+  const projectStatuses = hasCustomStatuses
+    ? [...new Set(source.projectStatuses.map((value) => String(value || '').trim()).filter(Boolean))]
+    : [...DEFAULT_SETTINGS.projectStatuses]
   const normalizedWindowMode =
     windowMode === 'windowed' ||
     windowMode === 'borderless' ||
@@ -65,6 +72,8 @@ export function normalizeSettings(source) {
     theme: 'midnight',
     animations: source?.animations !== false,
     controlsLayout,
+    statusesEnabled,
+    projectStatuses: hasCustomStatuses ? projectStatuses : [...DEFAULT_SETTINGS.projectStatuses],
     windowMode: normalizedWindowMode,
     alwaysOnTop: !!source?.alwaysOnTop,
     language: source?.language === 'en' || source?.language === 'uk' ? source.language : 'ru',

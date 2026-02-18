@@ -6,6 +6,8 @@ export const DEFAULT_SETTINGS = {
   theme: 'midnight',
   animations: true,
   controlsLayout: 'topbar',
+  statusesEnabled: true,
+  projectStatuses: ['Новый', 'В работе', 'Завершен'],
   windowMode: 'fullscreen_framed',
   alwaysOnTop: false,
   language: 'ru',

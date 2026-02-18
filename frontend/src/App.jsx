@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { Check, FilePlus2, FolderCog, FolderPlus, Pencil, Plus, Save } from 'lucide-react'
 import Modal from './components/Modal'
@@ -21,6 +21,8 @@ import './App.css'
 
 function App() {
   const appVersion = import.meta.env.VITE_APP_VERSION || 'dev'
+  const importFileRef = useRef(null)
+
   const [projects, setProjects] = useState([])
   const [settings, setSettings] = useState({ ...DEFAULT_SETTINGS })
   const [settingsDraft, setSettingsDraft] = useState({ ...DEFAULT_SETTINGS })
@@ -31,8 +33,8 @@ function App() {
   const [editProjectOpen, setEditProjectOpen] = useState(false)
   const [createNoteOpen, setCreateNoteOpen] = useState(false)
   const [editNoteOpen, setEditNoteOpen] = useState(false)
-  const [projectForm, setProjectForm] = useState({ name: '', description: '' })
-  const [projectEditForm, setProjectEditForm] = useState({ name: '', description: '' })
+  const [projectForm, setProjectForm] = useState({ name: '', description: '', status: '' })
+  const [projectEditForm, setProjectEditForm] = useState({ name: '', description: '', status: '' })
   const [noteCreateForm, setNoteCreateForm] = useState({ title: '', body: '' })
   const [noteEditForm, setNoteEditForm] = useState(null)
   const [newProjectStep, setNewProjectStep] = useState('')
@@ -52,12 +54,29 @@ function App() {
     const table = I18N[settings.language] || I18N.ru
     return (key) => table[key] || I18N.ru[key] || key
   }, [settings.language])
+
   const isContextualControls = settings.controlsLayout === 'contextual'
+  const statusesEnabled = settings.statusesEnabled
+  const defaultProjectStatus = settings.projectStatuses[0] || ''
+
+  const sortedProjects = useMemo(() => {
+    return [...projects].sort((a, b) => {
+      if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1
+      return String(a.name || '').localeCompare(String(b.name || ''), settings.language)
+    })
+  }, [projects, settings.language])
 
   const selectedProject = useMemo(
     () => projects.find((project) => project.id === selectedProjectId) ?? null,
     [projects, selectedProjectId],
   )
+
+  const selectedProjectStatusOptions = useMemo(() => {
+    const base = Array.isArray(settings.projectStatuses) ? settings.projectStatuses : []
+    if (!selectedProject?.status || base.includes(selectedProject.status)) return base
+    return [...base, selectedProject.status]
+  }, [settings.projectStatuses, selectedProject])
+
   const progress = useMemo(() => {
     if (!selectedProject) return { done: 0, total: 0, value: 0 }
     const steps = selectedProject.steps || []
@@ -127,9 +146,9 @@ function App() {
       return
     }
     if (!projects.some((project) => project.id === selectedProjectId)) {
-      setSelectedProjectId(projects[0].id)
+      setSelectedProjectId(sortedProjects[0].id)
     }
-  }, [projects, selectedProjectId])
+  }, [projects, sortedProjects, selectedProjectId])
 
   useEffect(() => {
     setShowStepCreate(false)
@@ -198,8 +217,9 @@ function App() {
   }
 
   async function saveAllSettings() {
-    const next = { ...settingsDraft }
+    const next = normalizeSettings({ ...settingsDraft })
     setSettings(next)
+    setSettingsDraft(next)
     if (isTauriRuntime()) {
       try {
         await invoke('apply_window_settings', { payload: { windowMode: next.windowMode, alwaysOnTop: next.alwaysOnTop } })
@@ -211,23 +231,31 @@ function App() {
   }
 
   function openCreateProjectModal() {
-    setProjectForm({ name: '', description: '' })
+    setProjectForm({ name: '', description: '', status: defaultProjectStatus })
     setCreateProjectOpen(true)
   }
+
   function openEditProjectModal() {
     if (!selectedProject) return
-    setProjectEditForm({ name: selectedProject.name, description: selectedProject.description })
+    setProjectEditForm({
+      name: selectedProject.name,
+      description: selectedProject.description,
+      status: selectedProject.status || defaultProjectStatus,
+    })
     setEditProjectOpen(true)
   }
+
   function openCreateNoteModal() {
     if (!selectedProject) return
     setNoteCreateForm({ title: '', body: '' })
     setCreateNoteOpen(true)
   }
+
   function openEditNoteModal(note) {
     setNoteEditForm({ id: note.id, title: note.title, body: note.body })
     setEditNoteOpen(true)
   }
+
   function openSettingsPage() {
     setSettingsDraft(settings)
     setActivePage('settings')
@@ -236,11 +264,20 @@ function App() {
   function saveNewProject() {
     const name = projectForm.name.trim()
     if (!name) return
-    const project = { id: createId(), name, description: projectForm.description.trim(), notes: [], steps: [] }
+    const project = {
+      id: createId(),
+      name,
+      description: projectForm.description.trim(),
+      status: statusesEnabled ? String(projectForm.status || '').trim() : '',
+      pinned: false,
+      notes: [],
+      steps: [],
+    }
     setProjects((prev) => [...prev, project])
     setSelectedProjectId(project.id)
     setCreateProjectOpen(false)
   }
+
   function saveProjectChanges() {
     if (!selectedProject) return
     const name = projectEditForm.name.trim()
@@ -249,14 +286,102 @@ function App() {
       prev.map((project) =>
         project.id !== selectedProject.id
           ? project
-          : { ...project, name, description: projectEditForm.description.trim() }),
+          : {
+              ...project,
+              name,
+              description: projectEditForm.description.trim(),
+              status: statusesEnabled ? String(projectEditForm.status || '').trim() : project.status,
+            }),
     )
     setEditProjectOpen(false)
   }
+
   function removeSelectedProject() {
     if (!selectedProject) return
     setProjects((prev) => prev.filter((project) => project.id !== selectedProject.id))
   }
+
+  function updateSelectedProjectStatus(status) {
+    if (!selectedProject) return
+    setProjects((prev) =>
+      prev.map((project) =>
+        project.id !== selectedProject.id ? project : { ...project, status: String(status || '').trim() }),
+    )
+  }
+
+  function toggleSelectedProjectPinned() {
+    if (!selectedProject) return
+    setProjects((prev) =>
+      prev.map((project) =>
+        project.id !== selectedProject.id ? project : { ...project, pinned: !project.pinned }),
+    )
+  }
+
+  function exportSelectedProject() {
+    if (!selectedProject) return
+    const payload = {
+      format: 'project-notes-studio-project',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      project: {
+        name: selectedProject.name,
+        description: selectedProject.description,
+        status: selectedProject.status || '',
+        pinned: !!selectedProject.pinned,
+        notes: selectedProject.notes || [],
+        steps: selectedProject.steps || [],
+      },
+    }
+
+    const safeName = String(selectedProject.name || 'project')
+      .toLowerCase()
+      .replace(/[^a-z0-9а-яё_-]+/gi, '-')
+      .replace(/^-+|-+$/g, '') || 'project'
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `${safeName}.pns-project.json`
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+    URL.revokeObjectURL(url)
+    pushToast(t('projectExported'), 'success')
+  }
+
+  function askImportProject() {
+    importFileRef.current?.click()
+  }
+
+  async function onProjectFilePicked(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const parsed = JSON.parse(text)
+      const sourceProject = parsed?.project ?? parsed
+      const normalized = normalizeProjects([sourceProject])[0]
+      if (!normalized) throw new Error('invalid payload')
+
+      const importedProject = {
+        ...normalized,
+        id: createId(),
+        notes: (normalized.notes || []).map((note) => ({ ...note, id: createId() })),
+        steps: (normalized.steps || []).map((step) => ({ ...step, id: createId() })),
+      }
+
+      setProjects((prev) => [...prev, importedProject])
+      setSelectedProjectId(importedProject.id)
+      setActivePage('projects')
+      pushToast(t('projectImported'), 'success')
+    } catch {
+      pushToast(t('projectImportError'), 'error')
+    }
+  }
+
   function saveNewNote() {
     if (!selectedProject) return
     const title = noteCreateForm.title.trim()
@@ -268,6 +393,7 @@ function App() {
     )
     setCreateNoteOpen(false)
   }
+
   function saveEditedNote() {
     if (!selectedProject || !noteEditForm) return
     const title = noteEditForm.title.trim()
@@ -285,6 +411,7 @@ function App() {
     setEditNoteOpen(false)
     setNoteEditForm(null)
   }
+
   function removeNote(noteId) {
     if (!selectedProject) return
     setProjects((prev) =>
@@ -294,6 +421,7 @@ function App() {
           : { ...project, notes: project.notes.filter((note) => note.id !== noteId) }),
     )
   }
+
   function addProjectStep() {
     if (!selectedProject) return
     const text = newProjectStep.trim()
@@ -305,6 +433,7 @@ function App() {
     )
     setNewProjectStep('')
   }
+
   function updateProjectStep(stepId, patch) {
     if (!selectedProject) return
     setProjects((prev) =>
@@ -317,6 +446,7 @@ function App() {
       }),
     )
   }
+
   function removeProjectStep(stepId) {
     if (!selectedProject) return
     setProjects((prev) =>
@@ -326,6 +456,7 @@ function App() {
           : { ...project, steps: project.steps.filter((step) => step.id !== stepId) }),
     )
   }
+
   function moveProjectStep(from, to) {
     if (!selectedProject) return
     if (to < 0 || to >= selectedProject.steps.length) return
@@ -376,13 +507,19 @@ function App() {
         <ProjectsPage
           t={t}
           isContextualControls={isContextualControls}
-          projects={projects}
+          statusesEnabled={statusesEnabled}
+          statusOptions={selectedProjectStatusOptions}
+          projects={sortedProjects}
           selectedProjectId={selectedProjectId}
           setSelectedProjectId={setSelectedProjectId}
           selectedProject={selectedProject}
           openCreateProjectModal={openCreateProjectModal}
           openEditProjectModal={openEditProjectModal}
           removeSelectedProject={removeSelectedProject}
+          toggleSelectedProjectPinned={toggleSelectedProjectPinned}
+          updateSelectedProjectStatus={updateSelectedProjectStatus}
+          exportSelectedProject={exportSelectedProject}
+          askImportProject={askImportProject}
           openCreateNoteModal={openCreateNoteModal}
           openEditNoteModal={openEditNoteModal}
           removeNote={removeNote}
@@ -397,6 +534,14 @@ function App() {
         />
       )}
 
+      <input
+        ref={importFileRef}
+        type="file"
+        accept="application/json,.json,.pns-project.json"
+        className="hidden-file-input"
+        onChange={onProjectFilePicked}
+      />
+
       {createProjectOpen ? (
         <Modal title={t('newProjectModal')} icon={<FolderPlus size={17} />} closeText={t('close')} onClose={() => setCreateProjectOpen(false)}>
           <div className="modal-body">
@@ -408,6 +553,16 @@ function App() {
               {t('descriptionField')}
               <textarea rows={3} value={projectForm.description} onChange={(event) => setProjectForm((prev) => ({ ...prev, description: event.target.value }))} />
             </label>
+            {statusesEnabled && settings.projectStatuses.length > 0 ? (
+              <label>
+                {t('projectStatus')}
+                <select value={projectForm.status} onChange={(event) => setProjectForm((prev) => ({ ...prev, status: event.target.value }))}>
+                  {settings.projectStatuses.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
           </div>
           <div className="modal-actions">
             <button className="wide-btn" onClick={saveNewProject}>
@@ -429,6 +584,16 @@ function App() {
               {t('descriptionField')}
               <textarea rows={3} value={projectEditForm.description} onChange={(event) => setProjectEditForm((prev) => ({ ...prev, description: event.target.value }))} />
             </label>
+            {statusesEnabled && selectedProjectStatusOptions.length > 0 ? (
+              <label>
+                {t('projectStatus')}
+                <select value={projectEditForm.status} onChange={(event) => setProjectEditForm((prev) => ({ ...prev, status: event.target.value }))}>
+                  {selectedProjectStatusOptions.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
           </div>
           <div className="modal-actions">
             <button className="wide-btn" onClick={saveProjectChanges}>

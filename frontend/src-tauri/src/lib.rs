@@ -39,6 +39,14 @@ fn default_language() -> String {
   "ru".to_string()
 }
 
+fn default_project_statuses() -> Vec<String> {
+  vec![
+    "Новый".to_string(),
+    "В работе".to_string(),
+    "Завершен".to_string(),
+  ]
+}
+
 fn default_window_mode() -> WindowMode {
   WindowMode::FullscreenFramed
 }
@@ -66,6 +74,8 @@ struct ProjectState {
   id: Option<EntityId>,
   name: String,
   description: String,
+  status: String,
+  pinned: bool,
   notes: Vec<NoteState>,
   steps: Vec<StepState>,
 }
@@ -79,6 +89,10 @@ struct SettingsState {
   animations: bool,
   #[serde(default = "default_controls_layout")]
   controls_layout: String,
+  #[serde(default = "default_true")]
+  statuses_enabled: bool,
+  #[serde(default = "default_project_statuses")]
+  project_statuses: Vec<String>,
   #[serde(default = "default_window_mode")]
   window_mode: WindowMode,
   always_on_top: bool,
@@ -92,6 +106,8 @@ impl Default for SettingsState {
       theme: default_theme(),
       animations: default_true(),
       controls_layout: default_controls_layout(),
+      statuses_enabled: default_true(),
+      project_statuses: default_project_statuses(),
       window_mode: default_window_mode(),
       always_on_top: false,
       language: default_language(),

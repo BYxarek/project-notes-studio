@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Check,
   Download,
@@ -11,6 +12,7 @@ import {
   Square,
   SquareStack,
   Tv,
+  X,
 } from 'lucide-react'
 
 function SettingsPage({
@@ -23,6 +25,25 @@ function SettingsPage({
   appVersion,
   saveAllSettings,
 }) {
+  const [newStatus, setNewStatus] = useState('')
+
+  function addStatus() {
+    const value = newStatus.trim()
+    if (!value) return
+    setSettingsDraft((prev) => {
+      if ((prev.projectStatuses || []).includes(value)) return prev
+      return { ...prev, projectStatuses: [...(prev.projectStatuses || []), value] }
+    })
+    setNewStatus('')
+  }
+
+  function removeStatus(value) {
+    setSettingsDraft((prev) => ({
+      ...prev,
+      projectStatuses: (prev.projectStatuses || []).filter((status) => status !== value),
+    }))
+  }
+
   return (
     <main className="panel settings-page">
       <h2>
@@ -66,6 +87,41 @@ function SettingsPage({
             <span>{t('controlsContextual')}</span>
           </button>
         </div>
+      </section>
+
+      <section className="setting-card">
+        <h3>
+          <Check size={17} />
+          <span>{t('statusesSection')}</span>
+        </h3>
+        <div className="setting-actions">
+          <button className={`mode-btn ${settingsDraft.statusesEnabled ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, statusesEnabled: !prev.statusesEnabled }))}>
+            <span>{settingsDraft.statusesEnabled ? t('statusesEnabled') : t('statusesDisabled')}</span>
+          </button>
+        </div>
+
+        {settingsDraft.statusesEnabled ? (
+          <>
+            <div className="status-list">
+              {(settingsDraft.projectStatuses || []).map((status) => (
+                <span key={status} className="status-chip">
+                  {status}
+                  <button title={t('deleteStatus')} aria-label={t('deleteStatus')} onClick={() => removeStatus(status)}>
+                    <X size={13} />
+                  </button>
+                </span>
+              ))}
+            </div>
+            {(settingsDraft.projectStatuses || []).length === 0 ? <p className="empty-notes">{t('noStatuses')}</p> : null}
+            <div className="status-create-row">
+              <input value={newStatus} onChange={(event) => setNewStatus(event.target.value)} placeholder={t('statusesPlaceholder')} />
+              <button className="wide-btn" onClick={addStatus}>
+                <Check size={15} />
+                <span>{t('addStatus')}</span>
+              </button>
+            </div>
+          </>
+        ) : null}
       </section>
 
       <section className="setting-card">

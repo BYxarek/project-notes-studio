@@ -62,12 +62,14 @@
 
 input,
 textarea,
+select,
 button {
   font: inherit;
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   border-radius: 10px;
   border: 1px solid rgba(152, 170, 199, 0.28);
@@ -77,7 +79,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   outline: none;
   border-color: rgba(95, 163, 255, 0.82);
   box-shadow: 0 0 0 2px rgba(95, 163, 255, 0.2);
@@ -327,5 +330,64 @@ textarea:focus {
 
 .project-description {
   margin: 8px 0 0;
+}
+
+.project-status-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.project-status-row > span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.project-status-select {
+  width: auto;
+  min-width: 180px;
+  max-width: 320px;
+}
+
+.status-list {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(17, 22, 33, 0.88);
+  padding: 4px 9px;
+  font-size: 0.9rem;
+}
+
+.status-chip button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.status-create-row {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr auto;
+}
+
+.hidden-file-input {
+  display: none;
 }
 

@@ -1,4 +1,5 @@
 import {
+  Download,
   FilePenLine,
   FilePlus2,
   FolderCog,
@@ -7,14 +8,19 @@ import {
   ListTodo,
   NotebookText,
   Pencil,
+  Pin,
+  PinOff,
   Plus,
   Trash2,
+  Upload,
 } from 'lucide-react'
 import IconButton from './IconButton'
 
 function ProjectsPage({
   t,
   isContextualControls,
+  statusesEnabled,
+  statusOptions,
   projects,
   selectedProjectId,
   setSelectedProjectId,
@@ -22,6 +28,10 @@ function ProjectsPage({
   openCreateProjectModal,
   openEditProjectModal,
   removeSelectedProject,
+  toggleSelectedProjectPinned,
+  updateSelectedProjectStatus,
+  exportSelectedProject,
+  askImportProject,
   openCreateNoteModal,
   openEditNoteModal,
   removeNote,
@@ -49,7 +59,10 @@ function ProjectsPage({
         <div className="project-list">
           {projects.map((project, index) => (
             <button key={project.id} className={`project-item ${selectedProjectId === project.id ? 'selected' : ''}`} onClick={() => setSelectedProjectId(project.id)} style={{ animationDelay: `${index * 40}ms` }}>
-              <span className="project-name wrap-anywhere">{project.name}</span>
+              <span className="project-name wrap-anywhere">
+                {project.pinned ? <Pin size={13} /> : null}
+                {project.name}
+              </span>
               <span className="project-count">
                 <NotebookText size={12} />
                 <span>{project.notes.length} {t('noteCount')} • {(project.steps || []).length} {t('stepCount')}</span>
@@ -73,13 +86,42 @@ function ProjectsPage({
                   <FolderOpen size={20} />
                   <span className="wrap-anywhere">{selectedProject.name}</span>
                 </h2>
-                {isContextualControls ? (
-                  <div className="inline-actions">
-                    <IconButton title={t('editProject')} icon={<FolderCog size={18} />} onClick={openEditProjectModal} />
-                    <IconButton title={t('deleteProject')} icon={<Trash2 size={18} />} onClick={removeSelectedProject} danger />
-                  </div>
-                ) : null}
+                <div className="inline-actions">
+                  <IconButton
+                    title={selectedProject.pinned ? t('unpinProject') : t('pinProject')}
+                    icon={selectedProject.pinned ? <PinOff size={18} /> : <Pin size={18} />}
+                    onClick={toggleSelectedProjectPinned}
+                  />
+                  <IconButton title={t('exportProject')} icon={<Download size={18} />} onClick={exportSelectedProject} />
+                  <IconButton title={t('importProject')} icon={<Upload size={18} />} onClick={askImportProject} />
+                  {isContextualControls ? (
+                    <>
+                      <IconButton title={t('editProject')} icon={<FolderCog size={18} />} onClick={openEditProjectModal} />
+                      <IconButton title={t('deleteProject')} icon={<Trash2 size={18} />} onClick={removeSelectedProject} danger />
+                    </>
+                  ) : null}
+                </div>
               </div>
+
+              {statusesEnabled && (statusOptions || []).length > 0 ? (
+                <div className="project-status-row">
+                  <span>{t('projectStatus')}:</span>
+                  <select
+                    className="project-status-select"
+                    value={selectedProject.status || ''}
+                    onChange={(event) => updateSelectedProjectStatus(event.target.value)}
+                  >
+                    {(statusOptions || []).map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+
+              {statusesEnabled && (statusOptions || []).length === 0 ? (
+                <p className="empty-notes">{t('noStatuses')}</p>
+              ) : null}
+
               {selectedProject.description ? <p className="project-description wrap-anywhere">{selectedProject.description}</p> : null}
             </div>
             <div className="content-separator" />
