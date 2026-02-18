@@ -50,6 +50,7 @@ export function normalizeProjects(source) {
 
 export function normalizeSettings(source) {
   const windowMode = source?.windowMode
+  const controlsLayout = source?.controlsLayout === 'contextual' ? 'contextual' : 'topbar'
   const normalizedWindowMode =
     windowMode === 'windowed' ||
     windowMode === 'borderless' ||
@@ -61,8 +62,9 @@ export function normalizeSettings(source) {
         : 'fullscreen_framed'
 
   return {
-    theme: source?.theme === 'deep' ? 'deep' : 'midnight',
+    theme: 'midnight',
     animations: source?.animations !== false,
+    controlsLayout,
     windowMode: normalizedWindowMode,
     alwaysOnTop: !!source?.alwaysOnTop,
     language: source?.language === 'en' || source?.language === 'uk' ? source.language : 'ru',

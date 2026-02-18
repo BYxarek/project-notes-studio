@@ -5,6 +5,7 @@ export const GITHUB_REPO = 'BYxarek/project-notes-studio'
 export const DEFAULT_SETTINGS = {
   theme: 'midnight',
   animations: true,
+  controlsLayout: 'topbar',
   windowMode: 'fullscreen_framed',
   alwaysOnTop: false,
   language: 'ru',

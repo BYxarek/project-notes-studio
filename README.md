@@ -15,7 +15,7 @@ Desktop app for managing projects, notes, and project-level action steps. Built 
 - Separate project-level action steps (outside notes)
 - Mark steps as done and reorder them
 - Settings page:
-  - Theme, animation toggle
+  - Animation toggle
   - Window modes:
     - Fullscreen (framed)
     - Fullscreen (borderless)
@@ -62,7 +62,7 @@ Release page: https://github.com/BYxarek/project-notes-studio/releases
 - Отдельные шаги проекта (не внутри заметок)
 - Отметка выполнения и изменение порядка шагов
 - Страница настроек:
-  - Тема интерфейса, вкл/выкл анимаций
+  - Вкл/выкл анимаций
   - Режимы окна:
     - Полный экран (с рамками)
     - Полный экран (без рамок)
@@ -102,5 +102,5 @@ npm run package
 frontend/                 React + Vite UI + Tauri app
 frontend/src/             UI code
 frontend/src-tauri/       Rust backend + Tauri configuration
-src/                      legacy Rust prototype (kept for history)
+legacy/eframe-prototype/  legacy Rust prototype (kept for history)
 ```
