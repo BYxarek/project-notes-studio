@@ -7,6 +7,12 @@
 
 Desktop app for managing projects, notes, and project-level action steps. Built with **React + Vite + Tauri (Rust)**.
 
+## Screenshots / Скриншоты
+
+![Projects Page](<Screenshot 2026-02-18 201021.png>)
+![Project Details](<Screenshot 2026-02-18 201034.png>)
+![Settings Page](<Screenshot 2026-02-18 201048.png>)
+
 ## English
 
 ### Features
