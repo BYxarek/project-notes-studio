@@ -396,6 +396,18 @@ function App() {
         steps: (normalized.steps || []).map((step) => ({ ...step, id: createId() })),
       }
 
+      const importedStatus = String(importedProject.status || '').trim()
+      if (importedStatus) {
+        setSettings((prev) => {
+          if ((prev.projectStatuses || []).includes(importedStatus)) return prev
+          return { ...prev, projectStatuses: [...(prev.projectStatuses || []), importedStatus] }
+        })
+        setSettingsDraft((prev) => {
+          if ((prev.projectStatuses || []).includes(importedStatus)) return prev
+          return { ...prev, projectStatuses: [...(prev.projectStatuses || []), importedStatus] }
+        })
+      }
+
       setProjects((prev) => [...prev, importedProject])
       setSelectedProjectId(importedProject.id)
       setActivePage('projects')

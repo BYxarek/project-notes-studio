@@ -144,7 +144,6 @@ body {
 .section-title,
 .settings-page h2,
 .progress-top span,
-.project-count,
 .mode-btn,
 .setting-card h3,
 .note-header h3 {
@@ -291,8 +290,22 @@ body {
 }
 
 .project-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--muted);
   font-size: 0.86rem;
+}
+
+.project-meta {
+  margin-top: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.project-status-badge {
+  color: #b9caea;
+  font-size: 0.82rem;
 }
 
 .notes-head {

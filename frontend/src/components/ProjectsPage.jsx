@@ -66,10 +66,17 @@ function ProjectsPage({
                 {project.pinned ? <Pin size={13} /> : null}
                 {project.name}
               </span>
-              <span className="project-count">
-                <NotebookText size={12} />
-                <span>{project.notes.length} {t('noteCount')} • {(project.steps || []).length} {t('stepCount')}</span>
-              </span>
+              <div className="project-meta">
+                {statusesEnabled ? (
+                  <span className="project-status-badge">
+                    {t('projectStatus')}: {project.status || t('statusNotSet')}
+                  </span>
+                ) : null}
+                <span className="project-count">
+                  <NotebookText size={12} />
+                  <span>{project.notes.length} {t('noteCount')} • {(project.steps || []).length} {t('stepCount')}</span>
+                </span>
+              </div>
             </button>
           ))}
         </div>
