@@ -10,11 +10,13 @@ import {
   RefreshCw,
   Settings,
   Trash2,
+  Upload,
 } from 'lucide-react'
 import IconButton from './IconButton'
 
 function TopBar({
   t,
+  askImportProject,
   selectedProject,
   progress,
   isContextualControls,
@@ -41,6 +43,7 @@ function TopBar({
           {!isContextualControls ? (
             <>
               <IconButton title={t('createProject')} icon={<FolderPlus size={18} />} onClick={openCreateProjectModal} />
+              <IconButton title={t('importProject')} icon={<Upload size={18} />} onClick={askImportProject} />
               <IconButton title={t('editProject')} icon={<FolderCog size={18} />} onClick={openEditProjectModal} disabled={!selectedProject} />
               <IconButton title={t('deleteProject')} icon={<Trash2 size={18} />} onClick={removeSelectedProject} danger disabled={!selectedProject} />
               <IconButton title={t('createNote')} icon={<FilePlus2 size={18} />} onClick={openCreateNoteModal} disabled={!selectedProject} />

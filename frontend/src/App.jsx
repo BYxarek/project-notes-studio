@@ -93,6 +93,12 @@ function App() {
     }, 2600)
   }
 
+  function saveSettingsPartial(patch) {
+    const nextSaved = normalizeSettings({ ...settings, ...patch })
+    setSettings(nextSaved)
+    setSettingsDraft((prev) => ({ ...prev, ...patch }))
+  }
+
   useEffect(() => {
     async function bootstrap() {
       try {
@@ -321,7 +327,8 @@ function App() {
     if (!selectedProject) return
     const payload = {
       format: 'project-notes-studio-project',
-      version: 1,
+      version: 2,
+      appVersion,
       exportedAt: new Date().toISOString(),
       project: {
         name: selectedProject.name,
@@ -362,6 +369,22 @@ function App() {
     try {
       const text = await file.text()
       const parsed = JSON.parse(text)
+      const fileVersion = normalizeVersionTag(parsed?.appVersion || '')
+      const currentVersion = normalizeVersionTag(appVersion)
+      if (!fileVersion) {
+        pushToast(t('projectImportMissingVersion'), 'error')
+        return
+      }
+      if (compareVersions(fileVersion, currentVersion) !== 0) {
+        const requiredMessage = t('projectImportVersionRequired').replace('{version}', fileVersion)
+        if (compareVersions(fileVersion, currentVersion) < 0) {
+          pushToast(`${requiredMessage} ${t('projectImportVersionLowerFile')}`, 'error')
+        } else {
+          pushToast(`${requiredMessage} ${t('projectImportVersionLowerApp')}`, 'error')
+        }
+        return
+      }
+
       const sourceProject = parsed?.project ?? parsed
       const normalized = normalizeProjects([sourceProject])[0]
       if (!normalized) throw new Error('invalid payload')
@@ -479,6 +502,7 @@ function App() {
 
       <TopBar
         t={t}
+        askImportProject={askImportProject}
         selectedProject={selectedProject}
         progress={progress}
         isContextualControls={isContextualControls}
@@ -497,6 +521,7 @@ function App() {
           t={t}
           settingsDraft={settingsDraft}
           setSettingsDraft={setSettingsDraft}
+          saveSettingsPartial={saveSettingsPartial}
           updateInfo={updateInfo}
           checkForUpdates={checkForUpdates}
           openUpdateDownload={openUpdateDownload}
@@ -514,12 +539,12 @@ function App() {
           setSelectedProjectId={setSelectedProjectId}
           selectedProject={selectedProject}
           openCreateProjectModal={openCreateProjectModal}
+          askImportProject={askImportProject}
           openEditProjectModal={openEditProjectModal}
           removeSelectedProject={removeSelectedProject}
           toggleSelectedProjectPinned={toggleSelectedProjectPinned}
           updateSelectedProjectStatus={updateSelectedProjectStatus}
           exportSelectedProject={exportSelectedProject}
-          askImportProject={askImportProject}
           openCreateNoteModal={openCreateNoteModal}
           openEditNoteModal={openEditNoteModal}
           removeNote={removeNote}

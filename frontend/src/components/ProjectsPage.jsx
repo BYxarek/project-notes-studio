@@ -53,7 +53,10 @@ function ProjectsPage({
             <span>{t('projects')}</span>
           </h2>
           {isContextualControls ? (
-            <IconButton title={t('createProject')} icon={<FolderPlus size={18} />} onClick={openCreateProjectModal} />
+            <>
+              <IconButton title={t('createProject')} icon={<FolderPlus size={18} />} onClick={openCreateProjectModal} />
+              <IconButton title={t('importProject')} icon={<Upload size={18} />} onClick={askImportProject} />
+            </>
           ) : null}
         </div>
         <div className="project-list">
@@ -93,7 +96,6 @@ function ProjectsPage({
                     onClick={toggleSelectedProjectPinned}
                   />
                   <IconButton title={t('exportProject')} icon={<Download size={18} />} onClick={exportSelectedProject} />
-                  <IconButton title={t('importProject')} icon={<Upload size={18} />} onClick={askImportProject} />
                   {isContextualControls ? (
                     <>
                       <IconButton title={t('editProject')} icon={<FolderCog size={18} />} onClick={openEditProjectModal} />

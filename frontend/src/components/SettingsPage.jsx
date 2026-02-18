@@ -19,6 +19,7 @@ function SettingsPage({
   t,
   settingsDraft,
   setSettingsDraft,
+  saveSettingsPartial,
   updateInfo,
   checkForUpdates,
   openUpdateDownload,
@@ -30,10 +31,12 @@ function SettingsPage({
   function addStatus() {
     const value = newStatus.trim()
     if (!value) return
-    setSettingsDraft((prev) => {
-      if ((prev.projectStatuses || []).includes(value)) return prev
-      return { ...prev, projectStatuses: [...(prev.projectStatuses || []), value] }
-    })
+    const nextStatuses = (settingsDraft.projectStatuses || []).includes(value)
+      ? settingsDraft.projectStatuses || []
+      : [...(settingsDraft.projectStatuses || []), value]
+    const nextDraft = { ...settingsDraft, projectStatuses: nextStatuses }
+    setSettingsDraft(nextDraft)
+    saveSettingsPartial({ projectStatuses: nextStatuses })
     setNewStatus('')
   }
 
