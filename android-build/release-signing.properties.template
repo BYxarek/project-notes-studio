@@ -1,0 +1,6 @@
+storeFile=my-release-keystore.p12
+storePassword=change-me
+keyAlias=release
+keyPassword=change-me
+tsaUrl=https://timestamp.digicert.com
+allowSelfSigned=false

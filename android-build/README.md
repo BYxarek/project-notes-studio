@@ -26,6 +26,10 @@ Also required in PATH:
 
 - `android-build/keystore/release-signing.properties`
 
+Template file in repo:
+
+- `android-build/release-signing.properties.template`
+
 Required keys:
 
 - `storeFile` (relative to `android-build/keystore` or absolute path)
@@ -49,6 +53,12 @@ keyAlias=release
 keyPassword=change-me
 tsaUrl=https://timestamp.digicert.com
 allowSelfSigned=false
+```
+
+Create local signing config:
+
+```powershell
+Copy-Item .\android-build\release-signing.properties.template .\android-build\keystore\release-signing.properties
 ```
 
 ## What to change before Android release

@@ -155,6 +155,15 @@ fn save_app_state(app: tauri::AppHandle, state: AppState) -> Result<(), String> 
 
 #[tauri::command]
 fn apply_window_settings(app: tauri::AppHandle, payload: WindowSettingsPayload) -> Result<(), String> {
+  #[cfg(any(target_os = "android", target_os = "ios"))]
+  {
+    let _ = app;
+    let _ = payload;
+    return Ok(());
+  }
+
+  #[cfg(not(any(target_os = "android", target_os = "ios")))]
+  {
   let window = app
     .get_webview_window("main")
     .ok_or_else(|| "main window not found".to_string())?;
@@ -185,6 +194,7 @@ fn apply_window_settings(app: tauri::AppHandle, payload: WindowSettingsPayload) 
   window
     .set_always_on_top(payload.always_on_top)
     .map_err(|err| err.to_string())
+  }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

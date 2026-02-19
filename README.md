@@ -59,6 +59,7 @@ Windows artifacts are generated here:
 ### Android Release Build
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\android-build\init-android.ps1
+Copy-Item .\android-build\release-signing.properties.template .\android-build\keystore\release-signing.properties
 powershell -ExecutionPolicy Bypass -File .\android-build\build-android.ps1
 ```
 Details: `android-build/README.md`
@@ -123,6 +124,7 @@ npm run package
 ### Android Release-сборка
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\android-build\init-android.ps1
+Copy-Item .\android-build\release-signing.properties.template .\android-build\keystore\release-signing.properties
 powershell -ExecutionPolicy Bypass -File .\android-build\build-android.ps1
 ```
 Подробности: `android-build/README.md`
