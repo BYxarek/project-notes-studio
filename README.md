@@ -2,10 +2,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/BYxarek/project-notes-studio)](https://github.com/BYxarek/project-notes-studio/releases)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6)](https://github.com/BYxarek/project-notes-studio/releases)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11%20%7C%20Android-0078D6)](https://github.com/BYxarek/project-notes-studio/releases)
 [![Tech](https://img.shields.io/badge/Stack-React%20%2B%20Tauri-4B6BFF)](https://github.com/BYxarek/project-notes-studio)
 
-Desktop app for managing projects, notes, and project-level action steps. Built with **React + Vite + Tauri (Rust)**.
+Cross-platform app for managing projects, notes, and project-level action steps on **Windows and Android**. Built with **React + Vite + Tauri (Rust)**.
 
 ## Screenshots / Скриншоты
 
@@ -35,7 +35,7 @@ Desktop app for managing projects, notes, and project-level action steps. Built 
 
 ### Tech Stack
 - Frontend: React 19, Vite 7, lucide-react
-- Desktop shell: Tauri 2
+- App shell: Tauri 2 (Windows + Android)
 - Backend: Rust (Tauri commands)
 
 ### Development
@@ -70,9 +70,11 @@ Android artifacts are generated here:
 - `app-universal-release.aab`
 
 ### Releases
-Prebuilt installers are published on GitHub Releases:
+Prebuilt packages are published on GitHub Releases:
 - NSIS setup (`.exe`)
 - MSI package (`.msi`)
+- Android APK (`.apk`)
+- Android App Bundle (`.aab`)
 
 Release page: https://github.com/BYxarek/project-notes-studio/releases
 
@@ -100,7 +102,7 @@ Release page: https://github.com/BYxarek/project-notes-studio/releases
 
 ### Стек
 - Frontend: React 19, Vite 7, lucide-react
-- Desktop-оболочка: Tauri 2
+- Оболочка приложения: Tauri 2 (Windows + Android)
 - Backend: Rust (команды Tauri)
 
 ### Запуск в разработке
@@ -135,9 +137,11 @@ powershell -ExecutionPolicy Bypass -File .\android-build\build-android.ps1
 - `app-universal-release.aab`
 
 ### Релизы
-Готовые установщики публикуются в GitHub Releases:
+Готовые пакеты публикуются в GitHub Releases:
 - NSIS-установщик (`.exe`)
 - MSI-пакет (`.msi`)
+- Android APK (`.apk`)
+- Android App Bundle (`.aab`)
 
 ## Repository Structure
 ```text
