@@ -1,0 +1,7 @@
+artifacts/
+keystore/
+keystore/*.jks
+keystore/*.keystore
+keystore/*.p12
+keystore/*.pfx
+keystore/release-signing.properties

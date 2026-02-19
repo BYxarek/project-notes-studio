@@ -51,6 +51,23 @@ cd frontend
 npm run package
 ```
 
+Windows artifacts are generated here:
+
+- `Project Notes Studio_<version>_x64-setup.exe` (NSIS)
+- `Project Notes Studio_<version>_x64_en-US.msi` (MSI)
+
+### Android Release Build
+```powershell
+powershell -ExecutionPolicy Bypass -File .\android-build\init-android.ps1
+powershell -ExecutionPolicy Bypass -File .\android-build\build-android.ps1
+```
+Details: `android-build/README.md`
+
+Android artifacts are generated here:
+
+- `app-universal-release-signed.apk`
+- `app-universal-release.aab`
+
 ### Releases
 Prebuilt installers are published on GitHub Releases:
 - NSIS setup (`.exe`)
@@ -97,6 +114,23 @@ npm run tauri:dev
 cd frontend
 npm run package
 ```
+
+Готовые Windows-артефакты:
+
+- `Project Notes Studio_<version>_x64-setup.exe` (NSIS)
+- `Project Notes Studio_<version>_x64_en-US.msi` (MSI)
+
+### Android Release-сборка
+```powershell
+powershell -ExecutionPolicy Bypass -File .\android-build\init-android.ps1
+powershell -ExecutionPolicy Bypass -File .\android-build\build-android.ps1
+```
+Подробности: `android-build/README.md`
+
+Готовые Android-артефакты:
+
+- `app-universal-release-signed.apk`
+- `app-universal-release.aab`
 
 ### Релизы
 Готовые установщики публикуются в GitHub Releases:

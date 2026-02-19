@@ -49,11 +49,20 @@ function App() {
   })
   const [toasts, setToasts] = useState([])
   const [didAutoUpdateCheck, setDidAutoUpdateCheck] = useState(false)
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 1080px)').matches : false,
+  )
+  const [projectsMenuOpen, setProjectsMenuOpen] = useState(false)
 
   const t = useMemo(() => {
     const table = I18N[settings.language] || I18N.ru
     return (key) => table[key] || I18N.ru[key] || key
   }, [settings.language])
+
+  const isMobileDevice = useMemo(() => {
+    if (typeof navigator === 'undefined') return isMobileViewport
+    return isMobileViewport || /android|iphone|ipad|ipod/i.test(navigator.userAgent)
+  }, [isMobileViewport])
 
   const isContextualControls = settings.controlsLayout === 'contextual'
   const statusesEnabled = settings.statusesEnabled
@@ -91,12 +100,6 @@ function App() {
     setTimeout(() => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id))
     }, 2600)
-  }
-
-  function saveSettingsPartial(patch) {
-    const nextSaved = normalizeSettings({ ...settings, ...patch })
-    setSettings(nextSaved)
-    setSettingsDraft((prev) => ({ ...prev, ...patch }))
   }
 
   useEffect(() => {
@@ -147,6 +150,30 @@ function App() {
   }, [projects, settings, loaded])
 
   useEffect(() => {
+    if (!loaded) return
+    const next = normalizeSettings(settingsDraft)
+    setSettings((prev) => {
+      const prevJson = JSON.stringify(prev)
+      const nextJson = JSON.stringify(next)
+      return prevJson === nextJson ? prev : next
+    })
+    if (isTauriRuntime()) {
+      invoke('apply_window_settings', { payload: { windowMode: next.windowMode, alwaysOnTop: next.alwaysOnTop } }).catch(() => {
+        // noop
+      })
+    }
+  }, [settingsDraft, loaded])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const media = window.matchMedia('(max-width: 1080px)')
+    const onChange = (event) => setIsMobileViewport(event.matches)
+    setIsMobileViewport(media.matches)
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
+
+  useEffect(() => {
     if (!projects.length) {
       setSelectedProjectId(null)
       return
@@ -155,6 +182,10 @@ function App() {
       setSelectedProjectId(sortedProjects[0].id)
     }
   }, [projects, sortedProjects, selectedProjectId])
+
+  useEffect(() => {
+    if (!isMobileDevice) setProjectsMenuOpen(false)
+  }, [isMobileDevice])
 
   useEffect(() => {
     setShowStepCreate(false)
@@ -220,20 +251,6 @@ function App() {
     } catch {
       window.open(target, '_blank', 'noopener,noreferrer')
     }
-  }
-
-  async function saveAllSettings() {
-    const next = normalizeSettings({ ...settingsDraft })
-    setSettings(next)
-    setSettingsDraft(next)
-    if (isTauriRuntime()) {
-      try {
-        await invoke('apply_window_settings', { payload: { windowMode: next.windowMode, alwaysOnTop: next.alwaysOnTop } })
-      } catch {
-        // noop
-      }
-    }
-    pushToast(t('settingsSaved'), 'success')
   }
 
   function openCreateProjectModal() {
@@ -524,7 +541,9 @@ function App() {
         removeSelectedProject={removeSelectedProject}
         openCreateNoteModal={openCreateNoteModal}
         openSettingsPage={openSettingsPage}
-        onOpenProjects={() => setActivePage('projects')}
+        onOpenProjects={() => {
+          setActivePage('projects')
+        }}
         toasts={toasts}
       />
 
@@ -533,12 +552,11 @@ function App() {
           t={t}
           settingsDraft={settingsDraft}
           setSettingsDraft={setSettingsDraft}
-          saveSettingsPartial={saveSettingsPartial}
           updateInfo={updateInfo}
           checkForUpdates={checkForUpdates}
           openUpdateDownload={openUpdateDownload}
           appVersion={appVersion}
-          saveAllSettings={saveAllSettings}
+          showWindowSettings={!isMobileDevice}
         />
       ) : (
         <ProjectsPage
@@ -568,6 +586,9 @@ function App() {
           newProjectStep={newProjectStep}
           setNewProjectStep={setNewProjectStep}
           addProjectStep={addProjectStep}
+          isMobileDevice={isMobileDevice}
+          projectsMenuOpen={projectsMenuOpen}
+          setProjectsMenuOpen={setProjectsMenuOpen}
         />
       )}
 

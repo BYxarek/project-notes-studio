@@ -1,4 +1,5 @@
 import {
+  ChevronLeft,
   Download,
   FilePenLine,
   FilePlus2,
@@ -6,6 +7,7 @@ import {
   FolderOpen,
   FolderPlus,
   ListTodo,
+  Menu,
   NotebookText,
   Pencil,
   Pin,
@@ -43,15 +45,38 @@ function ProjectsPage({
   newProjectStep,
   setNewProjectStep,
   addProjectStep,
+  isMobileDevice,
+  projectsMenuOpen,
+  setProjectsMenuOpen,
 }) {
+  function handleSelectProject(projectId) {
+    setSelectedProjectId(projectId)
+    if (isMobileDevice) setProjectsMenuOpen(false)
+  }
+
   return (
     <div className="layout">
-      <aside className="panel sidebar">
+      {isMobileDevice && projectsMenuOpen ? (
+        <button
+          className="sidebar-backdrop"
+          type="button"
+          aria-label={t('close')}
+          onClick={() => setProjectsMenuOpen(false)}
+        />
+      ) : null}
+
+      <aside className={`panel sidebar ${isMobileDevice ? 'mobile-drawer' : ''} ${projectsMenuOpen ? 'open' : ''}`}>
         <div className="section-head">
           <h2>
             <FolderOpen size={19} />
             <span>{t('projects')}</span>
           </h2>
+          {isMobileDevice ? (
+            <button className="mode-btn drawer-close-btn" onClick={() => setProjectsMenuOpen(false)}>
+              <ChevronLeft size={16} />
+              <span>{t('close')}</span>
+            </button>
+          ) : null}
           {isContextualControls ? (
             <>
               <IconButton title={t('createProject')} icon={<FolderPlus size={18} />} onClick={openCreateProjectModal} />
@@ -61,7 +86,7 @@ function ProjectsPage({
         </div>
         <div className="project-list">
           {projects.map((project, index) => (
-            <button key={project.id} className={`project-item ${selectedProjectId === project.id ? 'selected' : ''}`} onClick={() => setSelectedProjectId(project.id)} style={{ animationDelay: `${index * 40}ms` }}>
+            <button key={project.id} className={`project-item ${selectedProjectId === project.id ? 'selected' : ''}`} onClick={() => handleSelectProject(project.id)} style={{ animationDelay: `${index * 40}ms` }}>
               <span className="project-name wrap-anywhere">
                 {project.pinned ? <Pin size={13} /> : null}
                 {project.name}
@@ -83,6 +108,15 @@ function ProjectsPage({
       </aside>
 
       <main className="panel content">
+        {isMobileDevice ? (
+          <div className="mobile-projects-nav">
+            <button className="mode-btn" onClick={() => setProjectsMenuOpen(true)}>
+              <Menu size={16} />
+              <span>{t('projects')}</span>
+            </button>
+          </div>
+        ) : null}
+
         {!selectedProject ? (
           <section className="empty-state">
             <h2>{t('chooseProject')}</h2>

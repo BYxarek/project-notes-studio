@@ -8,7 +8,6 @@ import {
   LayoutGrid,
   MoonStar,
   RefreshCw,
-  Save,
   Square,
   SquareStack,
   Tv,
@@ -19,12 +18,11 @@ function SettingsPage({
   t,
   settingsDraft,
   setSettingsDraft,
-  saveSettingsPartial,
   updateInfo,
   checkForUpdates,
   openUpdateDownload,
   appVersion,
-  saveAllSettings,
+  showWindowSettings,
 }) {
   const [newStatus, setNewStatus] = useState('')
 
@@ -36,7 +34,6 @@ function SettingsPage({
       : [...(settingsDraft.projectStatuses || []), value]
     const nextDraft = { ...settingsDraft, projectStatuses: nextStatuses }
     setSettingsDraft(nextDraft)
-    saveSettingsPartial({ projectStatuses: nextStatuses })
     setNewStatus('')
   }
 
@@ -127,34 +124,36 @@ function SettingsPage({
         ) : null}
       </section>
 
-      <section className="setting-card">
-        <h3>
-          <FolderOpen size={17} />
-          <span>{t('windowMode')}</span>
-        </h3>
-        <div className="setting-actions">
-          <button className={`mode-btn ${settingsDraft.windowMode === 'fullscreen_framed' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, windowMode: 'fullscreen_framed' }))}>
-            <Tv size={15} />
-            <span>{t('fullscreenFramed')}</span>
-          </button>
-          <button className={`mode-btn ${settingsDraft.windowMode === 'fullscreen_borderless' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, windowMode: 'fullscreen_borderless' }))}>
-            <SquareStack size={15} />
-            <span>{t('fullscreenBorderless')}</span>
-          </button>
-          <button className={`mode-btn ${settingsDraft.windowMode === 'windowed' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, windowMode: 'windowed' }))}>
-            <Square size={15} />
-            <span>{t('windowed')}</span>
-          </button>
-          <button className={`mode-btn ${settingsDraft.windowMode === 'borderless' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, windowMode: 'borderless' }))}>
-            <SquareStack size={15} />
-            <span>{t('borderless')}</span>
-          </button>
-          <button className={`mode-btn ${settingsDraft.alwaysOnTop ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, alwaysOnTop: !prev.alwaysOnTop }))}>
-            <Check size={15} />
-            <span>{settingsDraft.alwaysOnTop ? t('alwaysOnTopYes') : t('alwaysOnTopNo')}</span>
-          </button>
-        </div>
-      </section>
+      {showWindowSettings ? (
+        <section className="setting-card">
+          <h3>
+            <FolderOpen size={17} />
+            <span>{t('windowMode')}</span>
+          </h3>
+          <div className="setting-actions">
+            <button className={`mode-btn ${settingsDraft.windowMode === 'fullscreen_framed' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, windowMode: 'fullscreen_framed' }))}>
+              <Tv size={15} />
+              <span>{t('fullscreenFramed')}</span>
+            </button>
+            <button className={`mode-btn ${settingsDraft.windowMode === 'fullscreen_borderless' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, windowMode: 'fullscreen_borderless' }))}>
+              <SquareStack size={15} />
+              <span>{t('fullscreenBorderless')}</span>
+            </button>
+            <button className={`mode-btn ${settingsDraft.windowMode === 'windowed' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, windowMode: 'windowed' }))}>
+              <Square size={15} />
+              <span>{t('windowed')}</span>
+            </button>
+            <button className={`mode-btn ${settingsDraft.windowMode === 'borderless' ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, windowMode: 'borderless' }))}>
+              <SquareStack size={15} />
+              <span>{t('borderless')}</span>
+            </button>
+            <button className={`mode-btn ${settingsDraft.alwaysOnTop ? 'active' : ''}`} onClick={() => setSettingsDraft((prev) => ({ ...prev, alwaysOnTop: !prev.alwaysOnTop }))}>
+              <Check size={15} />
+              <span>{settingsDraft.alwaysOnTop ? t('alwaysOnTopYes') : t('alwaysOnTopNo')}</span>
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="setting-card">
         <h3>
@@ -200,12 +199,6 @@ function SettingsPage({
         {t('version')}: {appVersion}
       </div>
 
-      <div className="settings-save-row">
-        <button className="wide-btn" onClick={saveAllSettings}>
-          <Save size={16} />
-          <span>{t('saveSettings')}</span>
-        </button>
-      </div>
     </main>
   )
 }

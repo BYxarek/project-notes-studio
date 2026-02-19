@@ -35,7 +35,8 @@ body {
 }
 
 .app-shell {
-  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   padding: 18px;
   position: relative;
   overflow: hidden;
@@ -119,6 +120,7 @@ body {
   border-radius: 18px;
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
+  min-width: 0;
 }
 
 .topbar {
@@ -136,6 +138,7 @@ body {
 .settings-page h2 {
   margin: 0;
   font-family: 'Unbounded', sans-serif;
+  min-width: 0;
 }
 
 .title-block h1,
@@ -155,6 +158,8 @@ body {
 .toolbar {
   display: flex;
   gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .toolbar-right {
@@ -236,7 +241,8 @@ body {
   display: grid;
   gap: 14px;
   grid-template-columns: 320px 1fr;
-  min-height: calc(100vh - 140px);
+  min-height: calc(100dvh - 140px);
+  min-width: 0;
 }
 
 .sidebar,
@@ -245,6 +251,7 @@ body {
   padding: 14px;
   overflow: auto;
   overscroll-behavior: contain;
+  min-width: 0;
 }
 
 .sidebar h2,
@@ -319,12 +326,15 @@ body {
   justify-content: flex-start;
   gap: 10px;
   flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .inline-actions {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .section-head > h2,
@@ -364,5 +374,11 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 10px;
+}
+
+.mobile-projects-nav,
+.sidebar-backdrop,
+.drawer-close-btn {
+  display: none;
 }
 
