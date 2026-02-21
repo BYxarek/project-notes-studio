@@ -340,7 +340,7 @@ function App() {
     )
   }
 
-  function exportSelectedProject() {
+  async function exportSelectedProject() {
     if (!selectedProject) return
     const payload = {
       format: 'project-notes-studio-project',
@@ -362,11 +362,25 @@ function App() {
       .replace(/[^a-z0-9а-яё_-]+/gi, '-')
       .replace(/^-+|-+$/g, '') || 'project'
 
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const fileName = `${safeName}.pns-project.json`
+    const content = JSON.stringify(payload, null, 2)
+
+    if (isTauriRuntime()) {
+      try {
+        await invoke('export_project_file', { filename: fileName, content })
+        pushToast(t('projectExported'), 'success')
+        return
+      } catch {
+        pushToast(t('projectExportError'), 'error')
+        return
+      }
+    }
+
+    const blob = new Blob([content], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `${safeName}.pns-project.json`
+    anchor.download = fileName
     document.body.appendChild(anchor)
     anchor.click()
     document.body.removeChild(anchor)

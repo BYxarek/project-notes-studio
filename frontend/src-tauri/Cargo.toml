@@ -1,6 +1,6 @@
 [package]
 name = "project-notes-studio"
-version = "0.3.0"
+version = "0.3.1"
 description = "Project Notes Studio desktop app for managing projects, notes, and action steps."
 authors = ["BYxarek"]
 license = "MIT"

@@ -124,6 +124,7 @@ struct AppState {
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 struct WindowSettingsPayload {
   window_mode: WindowMode,
   always_on_top: bool,
@@ -151,6 +152,33 @@ fn save_app_state(app: tauri::AppHandle, state: AppState) -> Result<(), String> 
   let path = state_file_path(&app)?;
   let serialized = serde_json::to_string_pretty(&state).map_err(|err| err.to_string())?;
   fs::write(path, serialized).map_err(|err| err.to_string())
+}
+
+#[tauri::command]
+fn export_project_file(app: tauri::AppHandle, filename: String, content: String) -> Result<String, String> {
+  let file_name = PathBuf::from(filename)
+    .file_name()
+    .and_then(|value| value.to_str())
+    .ok_or_else(|| "invalid file name".to_string())?
+    .to_string();
+
+  let final_name = if file_name.ends_with(".pns-project.json") {
+    file_name
+  } else {
+    format!("{file_name}.pns-project.json")
+  };
+
+  let download_dir = app
+    .path()
+    .download_dir()
+    .or_else(|_| app.path().app_data_dir())
+    .map_err(|err| err.to_string())?;
+
+  fs::create_dir_all(&download_dir).map_err(|err| err.to_string())?;
+  let export_path = download_dir.join(final_name);
+  fs::write(&export_path, content).map_err(|err| err.to_string())?;
+
+  Ok(export_path.to_string_lossy().into_owned())
 }
 
 #[tauri::command]
@@ -214,6 +242,7 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
       load_app_state,
       save_app_state,
+      export_project_file,
       apply_window_settings
     ])
     .run(tauri::generate_context!())
