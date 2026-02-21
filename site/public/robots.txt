@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://by-dev.ru/gtihub/Project-Notes-Studio/sitemap.xml

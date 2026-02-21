@@ -1,0 +1,17 @@
+{
+  "name": "Project Notes Studio",
+  "short_name": "Notes Studio",
+  "description": "Dark animated notes workspace powered by React + Vite.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
